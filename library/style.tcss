@@ -1,0 +1,20 @@
+AddBook {
+    align: center middle;
+}
+
+AddBook > Container {
+    width:auto;
+    height: auto;
+    align: center middle;
+    padding: 1 2; 
+    background: $panel;
+}
+
+AddBook > Container > Horizontal {
+    height: auto;
+    width: auto;
+}
+
+AddBook > Container > Horizontal > Button {
+    margin: 1 2;
+}
