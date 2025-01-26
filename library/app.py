@@ -1,5 +1,5 @@
 from textual.app import App, ComposeResult
-from textual.widgets import Input, Button, Footer, Header, Static, DataTable
+from textual.widgets import Input, Button, Footer, Header, Static, DataTable, ListView, ListItem, Label
 from textual.screen import ModalScreen
 from textual.containers import Horizontal, Container
 from textual.validation import Regex
@@ -8,7 +8,48 @@ from datatools import (add_book,
                        remove_book, 
                        engine, 
                        check_title_exists,
-                       get_all_data)
+                       get_all_data,
+                       get_all_category)
+
+
+class LabelItem(ListItem):
+    def __init__(self, label: str) -> None:
+        super().__init__()
+        self.label = label
+    def compose(self) -> ComposeResult:
+        yield Label(self.label)
+
+class ManageGenre(ModalScreen):
+    BINDINGS = [
+        ("ctrl+c", "exit", "quit"),
+    ]
+
+    item_selected = ""
+    
+    def compose(self) -> ComposeResult:
+        yield Static(id='update_field')
+        yield ListView(*[LabelItem(x) for x in get_all_category(engine)])
+        yield Input(placeholder="Neue Kategorie...")
+        with Horizontal():
+            yield Button("Hinzufügen", "success", id="add")
+            yield Button("Löschen", "success", id="remove")
+        with Horizontal():
+                yield Button("Abbrechen", "error", id="abort")
+
+    def on_list_view_selected(self, event: ListView.Selected):
+        self.item_selected = event.item.label
+
+    def on_button_pressed(self, event: Button.Pressed):
+        if event.button.id == "abort":
+            self.action_exit()
+        if event.button.id == "remove":
+            self.query_one("#update_field").update(self.item_selected)
+        if event.button.id == "add":
+            new_genre = self.query_one("Input")
+            self.query_one("#update_field").update(new_genre.value)
+
+    def action_exit(self):
+        self.app.pop_screen()
 
 
 class AddBook(ModalScreen):
@@ -58,9 +99,10 @@ class AddBook(ModalScreen):
 class Library(App):
 
     CSS_PATH = "style.tcss"
-    BINDINGS = [("ctrl+a", "add", "add a book"), 
+    BINDINGS = [("ctrl+a", "add", "add a book"),
                 ("ctrl+r", "reload", "reload"),
-                ("ctrl+d", "remove", "remove"),]
+                ("ctrl+d", "remove", "remove"),
+                ("f4", "manage_genre", "manage genre"),]
 
     row_selected = []
 
@@ -79,6 +121,9 @@ class Library(App):
 
     def action_add(self):
         self.push_screen(AddBook())
+
+    def action_manage_genre(self):
+        self.push_screen(ManageGenre())
 
     def action_reload(self):
         self.on_mount()

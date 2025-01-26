@@ -1,6 +1,14 @@
-from sqlmodel import Field, SQLModel, create_engine, UniqueConstraint
+from sqlmodel import Field, SQLModel, create_engine, UniqueConstraint, Relationship
 from datetime import datetime
+from typing import List, Optional
 
+
+class tblGenre(SQLModel, table=True):
+    __table_args__ = (
+        UniqueConstraint("name", name="genre_constraint"),
+    )
+    id: int | None = Field(default=None, primary_key=True)
+    name: str
 
 class tblBook(SQLModel, table=True):
     __table_args__ = (
@@ -8,9 +16,9 @@ class tblBook(SQLModel, table=True):
     )
     id: int | None = Field(default=None, primary_key=True)
     title: str
-    genre: str
     published: datetime
     author: str
+    genre_id: int | None = Field(foreign_key="tblgenre.id")
 
 
 sqlite_file_name = "database.db"
